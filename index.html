@@ -205,6 +205,30 @@ body::before{
   transition:all 0.15s;letter-spacing:0.03em;
 }
 .amboss-btn:hover{background:rgba(201,168,224,0.28);border-color:rgba(201,168,224,0.6);color:#a87dcc;}
+/* NOTES */
+.notes-wrap{
+  margin-top:28px;
+  background:linear-gradient(135deg,rgba(255,240,248,0.7),rgba(248,243,255,0.7));
+  border:1.5px solid rgba(220,140,170,0.2);
+  border-radius:20px;padding:18px 20px;
+  box-shadow:var(--shadow);
+}
+.notes-header{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.notes-icon{font-size:16px;}
+.notes-label{font-size:13px;font-weight:700;color:var(--rose2);flex:1;}
+.notes-saved{font-size:10.5px;color:var(--text3);font-weight:600;opacity:0;transition:opacity 0.4s;}
+.notes-saved.show{opacity:1;}
+.notes-ta{
+  width:100%;min-height:120px;
+  background:white;border:1.5px solid rgba(220,140,170,0.22);
+  border-radius:14px;padding:12px 14px;
+  font-family:'Quicksand',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text);line-height:1.65;resize:vertical;outline:none;
+  transition:border-color 0.18s;
+}
+.notes-ta::placeholder{color:var(--text3);}
+.notes-ta:focus{border-color:rgba(232,114,143,0.45);}
+
 .uworld-wrap{
   background:linear-gradient(135deg,rgba(247,214,226,0.4),rgba(237,224,247,0.4));
   border:1.5px solid rgba(201,168,224,0.28);
@@ -590,6 +614,16 @@ function renderMain(){
     if(w.nbme&&w.week!==1&&w.week!==5) html+=renderNBME(w);
     w.sections.forEach(s=>{html+=renderSection(s);});
     if(w.nbme&&(w.week===1||w.week===5)) html+=renderNBME(w);
+    const notesKey='notes||w'+w.week;
+    const savedNote=state[notesKey]||'';
+    html+=`<div class="notes-wrap">
+      <div class="notes-header">
+        <span class="notes-icon">🌸</span>
+        <span class="notes-label">Week ${w.week} Notes</span>
+        <span class="notes-saved" id="notes-saved-${w.week}">saved ✓</span>
+      </div>
+      <textarea class="notes-ta" id="notes-ta-${w.week}" placeholder="Write your notes, key takeaways, struggles, wins... anything! 💕" data-notesweek="${w.week}">${savedNote}</textarea>
+    </div>`;
     panel.innerHTML=html;
     main.appendChild(panel);
     panel.querySelectorAll('.topic-row').forEach(row=>{
@@ -619,6 +653,19 @@ function renderMain(){
         head.closest('.section-card').classList.toggle('open',openMap[sid]!==false);
       });
     });
+    const ta=panel.querySelector('.notes-ta');
+    if(ta){
+      let saveTimer;
+      ta.addEventListener('input',()=>{
+        clearTimeout(saveTimer);
+        saveTimer=setTimeout(()=>{
+          state['notes||w'+ta.dataset.notesweek]=ta.value;
+          save();
+          const indicator=document.getElementById('notes-saved-'+ta.dataset.notesweek);
+          if(indicator){indicator.classList.add('show');setTimeout(()=>indicator.classList.remove('show'),1800);}
+        },600);
+      });
+    }
   });
 }
 
